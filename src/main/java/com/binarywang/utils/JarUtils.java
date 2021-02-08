@@ -34,7 +34,7 @@ public class JarUtils {
         final String bakJarPath = jarPath.substring(0, jarPath.lastIndexOf(File.separator)) + getJarName(jarPath) + "_bak.jar";
         File destFile = new File(bakJarPath);
         if (!file.renameTo(destFile)) {
-            throw new RuntimeException("重命名文件失败");
+            throw new IllegalArgumentException("重命名文件失败");
         }
 
         try (JarFile jarFile = new JarFile(destFile);
@@ -53,17 +53,20 @@ public class JarUtils {
             JarEntry jarEntry = new JarEntry(destPath);
             out.putNextEntry(jarEntry);
 
-            final Optional<JarEntry> first = jarFile.stream().filter(entry -> destPath.equals(entry.getName())).findFirst();
-            if (first.isPresent()) {
-                final JarEntry replacedFile = first.get();
-                try (InputStream in = jarFile.getInputStream(replacedFile)) {
-                    IOUtils.write(IOUtils.toString(in, StandardCharsets.UTF_8).replace(srcString, destString),
-                            out, StandardCharsets.UTF_8);
-                }
-            } else {
-                throw new IllegalArgumentException("指定路径不对，请核实");
-            }
+            // 两种方法替换文件
+            // 方法1：
+//            final Optional<JarEntry> first = jarFile.stream().filter(entry -> destPath.equals(entry.getName())).findFirst();
+//            if (first.isPresent()) {
+//                final JarEntry replacedFile = first.get();
+//                try (InputStream in = jarFile.getInputStream(replacedFile)) {
+//                    IOUtils.write(IOUtils.toString(in, StandardCharsets.UTF_8).replace(srcString, destString),
+//                            out, StandardCharsets.UTF_8);
+//                }
+//            } else {
+//                throw new IllegalArgumentException("指定路径不对，请核实");
+//            }
 
+            // 方法2：
             URL url = new URL("jar:file:" + bakJarPath + "!/" + destPath);
             JarURLConnection jarConnection = (JarURLConnection) url.openConnection();
             try (InputStream in = jarConnection.getInputStream()) {
@@ -72,7 +75,7 @@ public class JarUtils {
             }
         }
 
-        //destFile.delete();
+        destFile.delete();
     }
 
     /**
@@ -109,7 +112,7 @@ public class JarUtils {
             copyFile(in, out);
         }
 
-        //destFile.delete();
+        destFile.delete();
     }
 
     private static String getJarName(String jarPath) {
