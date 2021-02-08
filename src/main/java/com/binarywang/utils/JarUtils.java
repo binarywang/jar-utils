@@ -89,7 +89,7 @@ public class JarUtils {
         // 将jar文件名重命名为jarName_bak.jar
         File destFile = new File(jarPath.substring(0, jarPath.lastIndexOf(File.separator)) + getJarName(jarPath) + "_bak.jar");
         if (!file.renameTo(destFile)) {
-            throw new RuntimeException("重命名文件失败");
+            throw new IllegalArgumentException("重命名文件失败");
         }
 
         try (JarFile jarFile = new JarFile(destFile);
